@@ -28,7 +28,7 @@ public class PublisherSpout extends BaseRichSpout {
 
     @Override
     public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
-        this.collector = collector; // this.collector = spoutOutputCollector ????
+        this.collector = spoutOutputCollector;
         this.random = new Random();
     }
 
