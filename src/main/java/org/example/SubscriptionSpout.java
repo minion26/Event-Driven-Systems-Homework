@@ -1,11 +1,6 @@
 package org.example;
 
-import org.apache.storm.spout.SpoutOutputCollector;
-import org.apache.storm.task.TopologyContext;
-import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.topology.base.BaseRichSpout;
-import org.apache.storm.tuple.Fields;
-import org.apache.storm.tuple.Values;
+
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -18,9 +13,8 @@ import java.util.Random;
  *
  */
 
-public class SubscriptionSpout extends BaseRichSpout {
+public class SubscriptionSpout  {
 
-    private SpoutOutputCollector collector;
     private Random random = new Random();
 
     private List<String> cities = List.of("Bucharest", "Cluj", "Iasi", "Timisoara");
@@ -35,16 +29,7 @@ public class SubscriptionSpout extends BaseRichSpout {
         this.equalityFrequencies = equalityFrequencies;
     }
 
-    /**
-     * Unele campuri pot lipsi; frecventa campurilor prezente trebuie sa fie configurabila
-     * @param map
-     * @param topologyContext
-     * @param spoutOutputCollector
-     */
-    @Override
-    public void open(Map<String, Object> map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
-        this.collector = spoutOutputCollector;
-    }
+
 
     /**
      * random.nextDouble() genereaza un numar intre 0.0 si 1.0
@@ -52,8 +37,8 @@ public class SubscriptionSpout extends BaseRichSpout {
      *
      */
 
-    @Override
-    public void nextTuple() {
+
+    public Map<String, String> nextTuple() {
         Map<String, String> subscription = new HashMap<>();
 
         if(random.nextDouble() < fieldFrequencies.getOrDefault("city", 0.0)){
@@ -93,13 +78,6 @@ public class SubscriptionSpout extends BaseRichSpout {
         }
 
 
-        // Emit subscriptia generata
-        collector.emit(new Values(subscription));
-    }
-
-    @Override
-    public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("subscription"));
-
+        return subscription;
     }
 }
