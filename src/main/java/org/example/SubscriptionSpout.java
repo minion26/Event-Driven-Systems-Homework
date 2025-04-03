@@ -1,83 +1,134 @@
 package org.example;
 
+import java.util.*;
 
+public class SubscriptionSpout {
 
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+    private final Random random = new Random();
+    private final List<String> cities = List.of("Bucharest", "Cluj", "Iasi", "Timisoara");
+    private final List<String> directions = List.of("N", "NE", "E", "SE", "S", "SW", "W", "NW");
+    private final List<String> operators = List.of("=", "!=", "<", "<=", ">", ">=");
+    private final Map<String, Integer> fieldCounts;
+    private final Map<String, Integer> equalityCounts;
+    private final int totalSubscriptions;
+    private int generatedSubscriptions = 0;
 
-/**
- * posibilitatea de fixare a: numarului total de mesaje (publicatii, respectiv subscriptii), ponderii pe frecventa campurilor din subscriptii si ponderii operatorilor de egalitate din subscriptii pentru cel putin un camp
- *
- */
+    public SubscriptionSpout(Map<String, Double> fieldFrequencies, Map<String, Double> equalityFrequencies, int totalSubscriptions) {
+        this.totalSubscriptions = totalSubscriptions;
+        this.fieldCounts = new HashMap<>();
+        this.equalityCounts = new HashMap<>();
 
-public class SubscriptionSpout  {
+        // numarul de subscriptii
+        for (String field : fieldFrequencies.keySet()) {
+            fieldCounts.put(field, (int) Math.round(fieldFrequencies.get(field) * totalSubscriptions / 100.0));
+        }
 
-    private Random random = new Random();
-
-    private List<String> cities = List.of("Bucharest", "Cluj", "Iasi", "Timisoara");
-    private List<String> directions = List.of("N", "NE", "E", "SE", "S", "SW", "W", "NW");
-    private List<String> operators = List.of("=", "!=", "<", "<=", ">", ">=");
-
-    private Map<String, Double> fieldFrequencies ;
-    private Map<String, Double> equalityFrequencies;
-
-    public SubscriptionSpout(Map<String, Double> fieldFrequencies, Map<String, Double> equalityFrequencies) {
-        this.fieldFrequencies = fieldFrequencies;
-        this.equalityFrequencies = equalityFrequencies;
+        // numarul de subscriptii cu operatorul de egalitate
+        for (String field : equalityFrequencies.keySet()) {
+            equalityCounts.put(field, (int) Math.round(equalityFrequencies.get(field) * totalSubscriptions / 100.0));
+        }
     }
 
-
-
-    /**
-     * random.nextDouble() genereaza un numar intre 0.0 si 1.0
-     * fieldFrequencies returneaza probabilitatea ca acest cams sa fie inclus in subscriptie
-     *
-     */
-
-
-    public Map<String, String> nextTuple() {
-        Map<String, String> subscription = new HashMap<>();
-
-        if(random.nextDouble() < fieldFrequencies.getOrDefault("city", 0.0)){
-            String city = cities.get(random.nextInt(cities.size()));
-
-            // un oras nu poate fi mai mi decat alt oras deci aleg doar = / !=
-            String operator = random.nextDouble() < equalityFrequencies.getOrDefault("city", 0.0) ? "=" : "!=";
-            subscription.put("city", operator+ " "+city);
+    public String nextTuple() {
+        if (generatedSubscriptions >= totalSubscriptions) {
+            return null; // am generat toate subscriptiile
         }
 
-        if(random.nextDouble() < fieldFrequencies.getOrDefault("temp", 0.0)){
-            int temp = -20 + random.nextInt(61); //temperaturi intre -20 si 40
-            String operator = operators.get(random.nextInt(operators.size()));
-            subscription.put("temp", operator + " " + temp);
+        StringBuilder subscription = new StringBuilder("{");
+        List<String> fields = new ArrayList<>();
+
+        // adaugarea campurilor
+        if (shouldIncludeField("city")) {
+            fields.add(generateCityField());
+        }
+        if (shouldIncludeField("temp")) {
+            fields.add(generateTempField());
+        }
+        if (shouldIncludeField("wind")) {
+            fields.add(generateWindField());
+        }
+        if (shouldIncludeField("rain")) {
+            fields.add(generateRainField());
+        }
+        if (shouldIncludeField("direction")) {
+            fields.add(generateDirectionField());
+        }
+        if (shouldIncludeField("stationid")) {
+            fields.add(generateStationIdField());
+        }
+        if (shouldIncludeField("date")) {
+            fields.add(generateDateField());
         }
 
-        if (random.nextDouble() < fieldFrequencies.getOrDefault("rain", 0.0)) {
-            int rain = random.nextInt(100); // probabilitate ploaie intre 0 si 100
-            String operator = operators.get(random.nextInt(operators.size()));
-            subscription.put("rain", operator + " " + rain);
+        subscription.append(String.join(";", fields));
+        subscription.append("}");
+
+        generatedSubscriptions++;
+        return subscription.toString();
+    }
+
+    private boolean shouldIncludeField(String field) {
+        if (!fieldCounts.containsKey(field) || fieldCounts.get(field) <= 0) {
+            return false;
         }
 
-        if (random.nextDouble() < fieldFrequencies.getOrDefault("wind", 0.0)) {
-            int wind = random.nextInt(30); // Viteza vant intre 0 si 30
-            String operator = operators.get(random.nextInt(operators.size()));
-            subscription.put("wind", operator + " " + wind);
+        fieldCounts.put(field, fieldCounts.get(field) - 1);
+        return true;
+    }
+
+    private String generateCityField() {
+        String city = cities.get(random.nextInt(cities.size()));
+        String operator = shouldUseEqualityOperator("city") ? "=" : "!=";
+        return "(city," + operator + ",\"" + city + "\")";
+    }
+
+    private String generateTempField() {
+        int temp = random.nextInt(61) - 20;
+        String operator = shouldUseEqualityOperator("temp") ? "=" : getRandomNonEqualityOperator();
+        return "(temp," + operator + "," + temp + ")";
+    }
+
+    private String generateWindField() {
+        int wind = random.nextInt(30);
+        String operator = shouldUseEqualityOperator("wind") ? "=" : getRandomNonEqualityOperator();
+        return "(wind," + operator + "," + wind + ")";
+    }
+
+    private String generateRainField() {
+        double rain = Math.round(random.nextDouble() * 10) / 10.0;
+        String operator = shouldUseEqualityOperator("rain") ? "=" : getRandomNonEqualityOperator();
+        return "(rain," + operator + "," + String.format("%.1f", rain) + ")";
+    }
+
+    private String generateDirectionField() {
+        String direction = directions.get(random.nextInt(directions.size()));
+        String operator = shouldUseEqualityOperator("direction") ? "=" : getRandomNonEqualityOperator();
+        return "(direction," + operator + ",\"" + direction + "\")";
+    }
+
+    private String generateStationIdField() {
+        int stationId = random.nextInt(10) + 1;
+        String operator = shouldUseEqualityOperator("stationid") ? "=" : getRandomNonEqualityOperator();
+        return "(stationid," + operator + "," + stationId + ")";
+    }
+
+    private String generateDateField() {
+        String date = "2023-02-02";
+        String operator = shouldUseEqualityOperator("date") ? "=" : getRandomNonEqualityOperator();
+        return "(date," + operator + "," + date + ")";
+    }
+
+    private boolean shouldUseEqualityOperator(String field) {
+        if (!equalityCounts.containsKey(field) || equalityCounts.get(field) <= 0) {
+            return false;
         }
 
-        if (random.nextDouble() < fieldFrequencies.getOrDefault("direction", 0.0)) {
-            String direction = directions.get(random.nextInt(directions.size()));
-            subscription.put("direction", "= " + direction);
-        }
+        equalityCounts.put(field, equalityCounts.get(field) - 1);
+        return true;
+    }
 
-        if (random.nextDouble() < fieldFrequencies.getOrDefault("date", 0.0)) {
-            String date = LocalDate.now().toString();
-            subscription.put("date", "= " + date);
-        }
-
-
-        return subscription;
+    private String getRandomNonEqualityOperator() {
+        List<String> nonEqualityOps = List.of("!=", "<", "<=", ">", ">=");
+        return nonEqualityOps.get(random.nextInt(nonEqualityOps.size()));
     }
 }

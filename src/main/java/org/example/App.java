@@ -14,34 +14,35 @@ import java.util.Map;
  */
 public class App {
 
-    public static void main( String[] args ) throws Exception {
-
-        // precizam frecventa unor campuri
+    public static void main(String[] args) throws Exception {
+        // Configurarea procentelor
         Map<String, Double> fieldFrequencies = new HashMap<>();
-        fieldFrequencies.put("city", 0.9);
-        fieldFrequencies.put("temp", 0.8);
-        fieldFrequencies.put("wind", 0.7);
+        fieldFrequencies.put("city", 90.0);  // 90% din subscriptii au campul city
+        fieldFrequencies.put("temp", 80.0);  // 80% din subscriptii au campul temp
+        fieldFrequencies.put("wind", 70.0);  // 70% din subscriptii au campul wind
 
-        // precizam frecventa pentru egalitate
+        // frecventa operatorului egal
         Map<String, Double> equalityFrequencies = new HashMap<>();
-        equalityFrequencies.put("city", 0.7);
+        equalityFrequencies.put("city", 70.0);  // 70% din campurile city utilizeaza operatorul de egalitate
+        // numarul de subscriptii generate
+        int totalSubscriptions = 10;
 
-
-
-        SubscriptionSpout subscriptionSpout = new SubscriptionSpout(fieldFrequencies, equalityFrequencies);
-        PublisherSpout publisherSpout = new PublisherSpout();
-        BasicBolt basicBolt = new BasicBolt();
-
-
-        for(int i = 0; i < 10; i++){
-            Map<String, String> subscription = subscriptionSpout.nextTuple();
-            Publication publication = publisherSpout.nextTuple();
-
-            basicBolt.execute(subscription);
-            basicBolt.execute(publication);
-
-            Thread.sleep(1000);
+        System.out.println("Generating subscriptions...");
+        SubscriptionSpout spout = new SubscriptionSpout(fieldFrequencies, equalityFrequencies, totalSubscriptions);
+        String subscription;
+        while ((subscription = spout.nextTuple()) != null) {
+            System.out.println("Generated subscription: " + subscription);
         }
 
+        System.out.println("\nGenerating publications...");
+        PublisherSpout publisherSpout = new PublisherSpout();
+        for (int i = 0; i < 5; i++) {
+            Publication publication = publisherSpout.nextTuple();
+            System.out.println("Generated publication: " + publication);
+
+            // procesarea publicatiilor
+            BasicBolt basicBolt = new BasicBolt();
+            basicBolt.execute(publication);
+        }
     }
 }
