@@ -5,6 +5,7 @@ import org.example.data.SubscriptionData;
 import org.example.util.ListUtil;
 import org.example.util.MathUtil;
 
+import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -124,7 +125,7 @@ public class SubscriptionSpout {
     }
 
     private SubscriptionData generateDateData() {
-        String date = "2023-02-02";
+        String date = LocalDate.now().toString();
         String operator = shouldUseEqualityOperator("date") ? "=" : getRandomNonEqualityOperator();
         return new SubscriptionData("date", operator, date);
     }
