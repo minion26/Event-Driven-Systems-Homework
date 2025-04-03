@@ -2,9 +2,9 @@ package org.example;
 
 
 
-import java.util.HashMap;
+import org.example.data.Publication;
+
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 /**

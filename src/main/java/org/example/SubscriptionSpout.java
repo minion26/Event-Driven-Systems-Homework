@@ -2,11 +2,18 @@ package org.example;
 
 
 
+import org.example.data.Subscription;
+import org.example.data.SubscriptionData;
+import org.example.util.ListUtil;
+import org.example.util.MathUtil;
+
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * posibilitatea de fixare a: numarului total de mesaje (publicatii, respectiv subscriptii), ponderii pe frecventa campurilor din subscriptii si ponderii operatorilor de egalitate din subscriptii pentru cel putin un camp
@@ -21,7 +28,7 @@ public class SubscriptionSpout  {
     private List<String> directions = List.of("N", "NE", "E", "SE", "S", "SW", "W", "NW");
     private List<String> operators = List.of("=", "!=", "<", "<=", ">", ">=");
 
-    private Map<String, Double> fieldFrequencies ;
+    private Map<String, Double> fieldFrequencies;
     private Map<String, Double> equalityFrequencies;
 
     public SubscriptionSpout(Map<String, Double> fieldFrequencies, Map<String, Double> equalityFrequencies) {
@@ -29,55 +36,61 @@ public class SubscriptionSpout  {
         this.equalityFrequencies = equalityFrequencies;
     }
 
+    public Subscription nextTuple() {
+        Subscription subscription = new Subscription();
 
+        newSubscription(subscription, "city", () -> {
+            String city = ListUtil.RandomFrom(cities);
 
-    /**
-     * random.nextDouble() genereaza un numar intre 0.0 si 1.0
-     * fieldFrequencies returneaza probabilitatea ca acest cams sa fie inclus in subscriptie
-     *
-     */
-
-
-    public Map<String, String> nextTuple() {
-        Map<String, String> subscription = new HashMap<>();
-
-        if(random.nextDouble() < fieldFrequencies.getOrDefault("city", 0.0)){
-            String city = cities.get(random.nextInt(cities.size()));
-
-            // un oras nu poate fi mai mi decat alt oras deci aleg doar = / !=
             String operator = random.nextDouble() < equalityFrequencies.getOrDefault("city", 0.0) ? "=" : "!=";
-            subscription.put("city", operator+ " "+city);
-        }
 
-        if(random.nextDouble() < fieldFrequencies.getOrDefault("temp", 0.0)){
-            int temp = -20 + random.nextInt(61); //temperaturi intre -20 si 40
-            String operator = operators.get(random.nextInt(operators.size()));
-            subscription.put("temp", operator + " " + temp);
-        }
+            return new SubscriptionData("city", operator, city);
+        });
 
-        if (random.nextDouble() < fieldFrequencies.getOrDefault("rain", 0.0)) {
-            int rain = random.nextInt(100); // probabilitate ploaie intre 0 si 100
-            String operator = operators.get(random.nextInt(operators.size()));
-            subscription.put("rain", operator + " " + rain);
-        }
+        newSubscription(subscription, "temp", () -> {
+            int temp = (int) random.nextGaussian() * 15 + 20;
 
-        if (random.nextDouble() < fieldFrequencies.getOrDefault("wind", 0.0)) {
-            int wind = random.nextInt(30); // Viteza vant intre 0 si 30
-            String operator = operators.get(random.nextInt(operators.size()));
-            subscription.put("wind", operator + " " + wind);
-        }
+            String operator = ListUtil.RandomFrom(operators);
 
-        if (random.nextDouble() < fieldFrequencies.getOrDefault("direction", 0.0)) {
-            String direction = directions.get(random.nextInt(directions.size()));
-            subscription.put("direction", "= " + direction);
-        }
+            return new SubscriptionData("temp", operator, String.valueOf(temp));
+        });
 
-        if (random.nextDouble() < fieldFrequencies.getOrDefault("date", 0.0)) {
+        newSubscription(subscription, "rain", () -> {
+            int rain = (int) random.nextGaussian() * 25 + 50;
+            rain = MathUtil.clampInteger(rain, 0, 100);
+
+            String operator = ListUtil.RandomFrom(operators);
+
+            return new SubscriptionData("rain", operator, String.valueOf(rain));
+        });
+
+        newSubscription(subscription, "wind", () -> {
+            int wind = (int) (random.nextGaussian() * 7.5 + 15);
+            wind = Math.max(wind, 0);
+
+            String operator = ListUtil.RandomFrom(operators);
+
+            return new SubscriptionData("wind", operator, String.valueOf(wind));
+        });
+
+        newSubscription(subscription, "direction", () -> {
+            String direction = ListUtil.RandomFrom(directions);
+
+            return new SubscriptionData("direction", "=", direction);
+        });
+
+        newSubscription(subscription, "date", () -> {
             String date = LocalDate.now().toString();
-            subscription.put("date", "= " + date);
-        }
 
+            return new SubscriptionData("date", "=", date);
+        });
 
         return subscription;
+    }
+
+    private void newSubscription(Subscription subscription, String type, Supplier<SubscriptionData> action) {
+        if(Math.abs(random.nextGaussian()) < fieldFrequencies.getOrDefault(type, 0.0)) {
+            subscription.addData(action.get());
+        }
     }
 }

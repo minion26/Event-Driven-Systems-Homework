@@ -1,12 +1,13 @@
 package org.example;
 
-import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
-import org.apache.storm.generated.StormTopology;
-import org.apache.storm.topology.TopologyBuilder;
+import org.example.data.Publication;
+import org.example.data.Subscription;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Hello world!
@@ -26,22 +27,19 @@ public class App {
         Map<String, Double> equalityFrequencies = new HashMap<>();
         equalityFrequencies.put("city", 0.7);
 
-
-
         SubscriptionSpout subscriptionSpout = new SubscriptionSpout(fieldFrequencies, equalityFrequencies);
         PublisherSpout publisherSpout = new PublisherSpout();
         BasicBolt basicBolt = new BasicBolt();
 
+        new ThreadedTask(1, 100, () -> {
+            basicBolt.execute( publisherSpout.nextTuple() );
+            basicBolt.execute( subscriptionSpout.nextTuple() );
 
-        for(int i = 0; i < 10; i++){
-            Map<String, String> subscription = subscriptionSpout.nextTuple();
-            Publication publication = publisherSpout.nextTuple();
-
-            basicBolt.execute(subscription);
-            basicBolt.execute(publication);
-
-            Thread.sleep(1000);
-        }
-
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }
