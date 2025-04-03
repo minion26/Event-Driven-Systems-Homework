@@ -1,13 +1,22 @@
 package org.example;
 
+import org.example.data.Subscription;
+import org.example.data.SubscriptionData;
+import org.example.util.ListUtil;
+import org.example.util.MathUtil;
+
 import java.util.*;
 
+/**
+ * posibilitatea de fixare a: numarului total de mesaje (publicatii, respectiv subscriptii),
+ * ponderii pe frecventa campurilor din subscriptii si ponderii operatorilor de egalitate
+ * din subscriptii pentru cel putin un camp
+ */
 public class SubscriptionSpout {
 
     private final Random random = new Random();
     private final List<String> cities = List.of("Bucharest", "Cluj", "Iasi", "Timisoara");
     private final List<String> directions = List.of("N", "NE", "E", "SE", "S", "SW", "W", "NW");
-    private final List<String> operators = List.of("=", "!=", "<", "<=", ">", ">=");
     private final Map<String, Integer> fieldCounts;
     private final Map<String, Integer> equalityCounts;
     private final int totalSubscriptions;
@@ -29,42 +38,43 @@ public class SubscriptionSpout {
         }
     }
 
-    public String nextTuple() {
+    // Constructor that matches the second implementation's signature
+    public SubscriptionSpout(Map<String, Double> fieldFrequencies, Map<String, Double> equalityFrequencies) {
+        this(fieldFrequencies, equalityFrequencies, 1000); // Default to 1000 subscriptions if not specified
+    }
+
+    public Subscription nextTuple() {
         if (generatedSubscriptions >= totalSubscriptions) {
             return null; // am generat toate subscriptiile
         }
 
-        StringBuilder subscription = new StringBuilder("{");
-        List<String> fields = new ArrayList<>();
+        Subscription subscription = new Subscription();
 
         // adaugarea campurilor
         if (shouldIncludeField("city")) {
-            fields.add(generateCityField());
+            subscription.addData(generateCityData());
         }
         if (shouldIncludeField("temp")) {
-            fields.add(generateTempField());
+            subscription.addData(generateTempData());
         }
         if (shouldIncludeField("wind")) {
-            fields.add(generateWindField());
+            subscription.addData(generateWindData());
         }
         if (shouldIncludeField("rain")) {
-            fields.add(generateRainField());
+            subscription.addData(generateRainData());
         }
         if (shouldIncludeField("direction")) {
-            fields.add(generateDirectionField());
+            subscription.addData(generateDirectionData());
         }
         if (shouldIncludeField("stationid")) {
-            fields.add(generateStationIdField());
+            subscription.addData(generateStationIdData());
         }
         if (shouldIncludeField("date")) {
-            fields.add(generateDateField());
+            subscription.addData(generateDateData());
         }
 
-        subscription.append(String.join(";", fields));
-        subscription.append("}");
-
         generatedSubscriptions++;
-        return subscription.toString();
+        return subscription;
     }
 
     private boolean shouldIncludeField(String field) {
@@ -76,46 +86,47 @@ public class SubscriptionSpout {
         return true;
     }
 
-    private String generateCityField() {
-        String city = cities.get(random.nextInt(cities.size()));
+    private SubscriptionData generateCityData() {
+        String city = ListUtil.RandomFrom(cities);
         String operator = shouldUseEqualityOperator("city") ? "=" : "!=";
-        return "(city," + operator + ",\"" + city + "\")";
+        return new SubscriptionData("city", operator, city);
     }
 
-    private String generateTempField() {
-        int temp = random.nextInt(61) - 20;
+    private SubscriptionData generateTempData() {
+        int temp =  (int) random.nextGaussian() * 15 + 20;
         String operator = shouldUseEqualityOperator("temp") ? "=" : getRandomNonEqualityOperator();
-        return "(temp," + operator + "," + temp + ")";
+        return new SubscriptionData("temp", operator, String.valueOf(temp));
     }
 
-    private String generateWindField() {
+    private SubscriptionData generateWindData() {
         int wind = random.nextInt(30);
         String operator = shouldUseEqualityOperator("wind") ? "=" : getRandomNonEqualityOperator();
-        return "(wind," + operator + "," + wind + ")";
+        return new SubscriptionData("wind", operator, String.valueOf(wind));
     }
 
-    private String generateRainField() {
-        double rain = Math.round(random.nextDouble() * 10) / 10.0;
+    private SubscriptionData generateRainData() {
+        int rain = (int) random.nextGaussian() * 25 + 50;
+        rain = MathUtil.clampInteger(rain, 0, 100);
         String operator = shouldUseEqualityOperator("rain") ? "=" : getRandomNonEqualityOperator();
-        return "(rain," + operator + "," + String.format("%.1f", rain) + ")";
+        return new SubscriptionData("rain", operator, String.format("%.1f", rain));
     }
 
-    private String generateDirectionField() {
-        String direction = directions.get(random.nextInt(directions.size()));
+    private SubscriptionData generateDirectionData() {
+        String direction = ListUtil.RandomFrom(directions);
         String operator = shouldUseEqualityOperator("direction") ? "=" : getRandomNonEqualityOperator();
-        return "(direction," + operator + ",\"" + direction + "\")";
+        return new SubscriptionData("direction", operator, direction);
     }
 
-    private String generateStationIdField() {
+    private SubscriptionData generateStationIdData() {
         int stationId = random.nextInt(10) + 1;
         String operator = shouldUseEqualityOperator("stationid") ? "=" : getRandomNonEqualityOperator();
-        return "(stationid," + operator + "," + stationId + ")";
+        return new SubscriptionData("stationid", operator, String.valueOf(stationId));
     }
 
-    private String generateDateField() {
+    private SubscriptionData generateDateData() {
         String date = "2023-02-02";
         String operator = shouldUseEqualityOperator("date") ? "=" : getRandomNonEqualityOperator();
-        return "(date," + operator + "," + date + ")";
+        return new SubscriptionData("date", operator, date);
     }
 
     private boolean shouldUseEqualityOperator(String field) {

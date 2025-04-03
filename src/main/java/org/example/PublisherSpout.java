@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.data.Publication;
+
 import java.util.List;
 import java.util.Random;
 

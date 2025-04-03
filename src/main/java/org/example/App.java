@@ -1,10 +1,4 @@
 package org.example;
-
-import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
-import org.apache.storm.generated.StormTopology;
-import org.apache.storm.topology.TopologyBuilder;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,24 +19,22 @@ public class App {
         Map<String, Double> equalityFrequencies = new HashMap<>();
         equalityFrequencies.put("city", 70.0);  // 70% din campurile city utilizeaza operatorul de egalitate
         // numarul de subscriptii generate
-        int totalSubscriptions = 10;
+        int totalSubscriptions = 10000;
 
-        System.out.println("Generating subscriptions...");
-        SubscriptionSpout spout = new SubscriptionSpout(fieldFrequencies, equalityFrequencies, totalSubscriptions);
-        String subscription;
-        while ((subscription = spout.nextTuple()) != null) {
-            System.out.println("Generated subscription: " + subscription);
-        }
-
-        System.out.println("\nGenerating publications...");
+        SubscriptionSpout subscriptionSpout = new SubscriptionSpout(fieldFrequencies, equalityFrequencies, totalSubscriptions);
         PublisherSpout publisherSpout = new PublisherSpout();
-        for (int i = 0; i < 5; i++) {
-            Publication publication = publisherSpout.nextTuple();
-            System.out.println("Generated publication: " + publication);
+        BasicBolt basicBolt = new BasicBolt();
 
-            // procesarea publicatiilor
-            BasicBolt basicBolt = new BasicBolt();
-            basicBolt.execute(publication);
-        }
+        new ThreadedTask(4, 100, () -> {
+            basicBolt.execute( publisherSpout.nextTuple() );
+            basicBolt.execute( subscriptionSpout.nextTuple() );
+
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }
+
