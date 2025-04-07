@@ -7,6 +7,7 @@ import org.example.util.MathUtil;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * posibilitatea de fixare a: numarului total de mesaje (publicatii, respectiv subscriptii),
@@ -44,7 +45,7 @@ public class SubscriptionSpout {
         this(fieldFrequencies, equalityFrequencies, 1000); // Default to 1000 subscriptions if not specified
     }
 
-    public Subscription nextTuple() {
+    public synchronized Subscription nextTuple() {
         if (generatedSubscriptions >= totalSubscriptions) {
             return null; // am generat toate subscriptiile
         }
@@ -78,7 +79,7 @@ public class SubscriptionSpout {
         return subscription;
     }
 
-    private boolean shouldIncludeField(String field) {
+    private synchronized boolean shouldIncludeField(String field) {
         if (!fieldCounts.containsKey(field) || fieldCounts.get(field) <= 0) {
             return false;
         }
@@ -87,50 +88,50 @@ public class SubscriptionSpout {
         return true;
     }
 
-    private SubscriptionData generateCityData() {
+    private synchronized SubscriptionData generateCityData() {
         String city = ListUtil.RandomFrom(cities);
         String operator = shouldUseEqualityOperator("city") ? "=" : "!=";
         return new SubscriptionData("city", operator, city);
     }
 
-    private SubscriptionData generateTempData() {
+    private synchronized SubscriptionData generateTempData() {
         int temp =  (int) random.nextGaussian() * 15 + 20;
         String operator = shouldUseEqualityOperator("temp") ? "=" : getRandomNonEqualityOperator();
         return new SubscriptionData("temp", operator, String.valueOf(temp));
     }
 
-    private SubscriptionData generateWindData() {
+    private synchronized SubscriptionData generateWindData() {
         int wind = random.nextInt(30);
         String operator = shouldUseEqualityOperator("wind") ? "=" : getRandomNonEqualityOperator();
         return new SubscriptionData("wind", operator, String.valueOf(wind));
     }
 
-    private SubscriptionData generateRainData() {
+    private synchronized SubscriptionData generateRainData() {
         int rain = (int) random.nextGaussian() * 25 + 50;
         rain = MathUtil.clampInteger(rain, 0, 100);
         String operator = shouldUseEqualityOperator("rain") ? "=" : getRandomNonEqualityOperator();
         return new SubscriptionData("rain", operator, String.format("%.1f", rain));
     }
 
-    private SubscriptionData generateDirectionData() {
+    private synchronized SubscriptionData generateDirectionData() {
         String direction = ListUtil.RandomFrom(directions);
         String operator = shouldUseEqualityOperator("direction") ? "=" : getRandomNonEqualityOperator();
         return new SubscriptionData("direction", operator, direction);
     }
 
-    private SubscriptionData generateStationIdData() {
+    private synchronized SubscriptionData generateStationIdData() {
         int stationId = random.nextInt(10) + 1;
         String operator = shouldUseEqualityOperator("stationid") ? "=" : getRandomNonEqualityOperator();
         return new SubscriptionData("stationid", operator, String.valueOf(stationId));
     }
 
-    private SubscriptionData generateDateData() {
+    private synchronized SubscriptionData generateDateData() {
         String date = LocalDate.now().toString();
         String operator = shouldUseEqualityOperator("date") ? "=" : getRandomNonEqualityOperator();
         return new SubscriptionData("date", operator, date);
     }
 
-    private boolean shouldUseEqualityOperator(String field) {
+    private synchronized boolean shouldUseEqualityOperator(String field) {
         if (!equalityCounts.containsKey(field) || equalityCounts.get(field) <= 0) {
             return false;
         }
@@ -139,7 +140,7 @@ public class SubscriptionSpout {
         return true;
     }
 
-    private String getRandomNonEqualityOperator() {
+    private synchronized String getRandomNonEqualityOperator() {
         List<String> nonEqualityOps = List.of("!=", "<", "<=", ">", ">=");
         return nonEqualityOps.get(random.nextInt(nonEqualityOps.size()));
     }
