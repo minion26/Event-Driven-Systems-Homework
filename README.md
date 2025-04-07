@@ -26,7 +26,7 @@ Subscriptie: `{(city,=,"Bucharest");(temp,>=,10);(wind,<,11)}` - Unele campuri p
           1. verifica daca generatedSubscriptions a ajuns la totalSubscriptions
           2. daca da, returneaza null, deci nu mai genereaza nimic
           3. altfel, genereaza o noua subscriptie si incrementeaza generatedSubscriptions
-   - `BasicBolt` este folosita pentru a simula o topologie adevarata, care proceseaza tuplele prin a le afisa direct in consola.
+   - `BasicBolt` este folosita pentru a simula o topologie adevarata, care proceseaza tuplele prin a le afisa direct in consola si le scrie intr-un fisier.
    - `ThreadedTask` este conceputa pentru a executa o sarcina Runnable data de un anumit numar de ori, utilizand un numar fix de fire de executie. Acesta masoara si afiseaza timpul necesar pentru finalizarea tuturor sarcinilor.
       - subscriptionSpout.nextTuple() va genera o singura subscriptie per apel, pana cand atinge totalSubscriptions
       - dupa aceea, va returna null, deci nu mai adauga nimic nou
