@@ -1,7 +1,7 @@
 # 👾 Event-Driven-Systems-Homework 👾
 
 ## Membri
-1. Balan Flori
+1. Balan Florin
 2. Ciudin Stefana
 3. Jitca Diana 
 
@@ -39,9 +39,9 @@ Subscriptie: `{(city,=,"Bucharest");(temp,>=,10);(wind,<,11)}` - Unele campuri p
 4. Evaluarea timpilor
 
 
-| Name                                    | Number Of Cores | Number Of Logical Processors | Number Of Threads | Time  |
-|-----------------------------------------|-----------------|------------------------------|-------------------|-------|
-| AMD Ryzen 5 4500U with Radeon Graphics  | 6               | 6                            | 4                 | 425ms |
+| Name                                    | Number Of Cores | Number Of Logical Processors | Number Of Threads | Time  | Sequential |
+|-----------------------------------------|-----------------|------------------------------|-------------------|-------|------------|
+| AMD Ryzen 5 4500U with Radeon Graphics  | 6               | 6                            | 4                 | 423ms |1572ms      |
 
 
 ## Concluzii
