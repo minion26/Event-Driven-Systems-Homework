@@ -28,8 +28,8 @@ Subscriptie: `{(city,=,"Bucharest");(temp,>=,10);(wind,<,11)}` - Unele campuri p
           3. altfel, genereaza o noua subscriptie si incrementeaza generatedSubscriptions
    - `BasicBolt` este folosita pentru a simula o topologie adevarata, care proceseaza tuplele prin a le afisa direct in consola.
    - `ThreadedTask` este conceputa pentru a executa o sarcina Runnable data de un anumit numar de ori, utilizand un numar fix de fire de executie. Acesta masoara si afiseaza timpul necesar pentru finalizarea tuturor sarcinilor.
-   - subscriptionSpout.nextTuple() va genera o singura subscriptie per apel, pana cand atinge totalSubscriptions
-   - dupa aceea, va returna null, deci nu mai adauga nimic nou
+      - subscriptionSpout.nextTuple() va genera o singura subscriptie per apel, pana cand atinge totalSubscriptions
+      - dupa aceea, va returna null, deci nu mai adauga nimic nou
    - `App`, punctul de intrare al aplicatiei Java, demonstreaza utilizarea claselor ThreadedTask, PublisherSpout si SubscriptionSpout. Aceasta creeaza instante ale acestor clase si afiseaza rezultatele in consola.
 
 3. Generarea subsctiptiilor
