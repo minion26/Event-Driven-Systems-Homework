@@ -15,6 +15,10 @@ Subscriptie: `{(city,=,"Bucharest");(temp,>=,10);(wind,<,11)}` - Unele campuri p
 
 ## Explicatii
 1. Introducere
+   
+   Aplicatia dezvoltata reuseste sa implementeze cerintele din enunt, folosindu-se de structura prezentata mai jos.
+   Pentru realizarea cerintei referitoare la paralelizare, am utilizat thread-uri, asupra carora am realizat si diferite teste.
+   Metricile obtinute sunt prezentate in tabelul final.
 2. Structura
    - `SubscriptionData` defineste un custom type ce reprezinta cum arata fiecare tupla din generari. Contine *tipul*, *operatorul* si *valoarea* asignata.
    - `Subscription` reprezinta o subscriptie care contine mai multe SubscriptionData.
@@ -39,9 +43,11 @@ Subscriptie: `{(city,=,"Bucharest");(temp,>=,10);(wind,<,11)}` - Unele campuri p
 4. Evaluarea timpilor
 
 
-| Name                                    | Number Of Cores | Number Of Logical Processors | Number Of Threads | Time  | Sequential |
-|-----------------------------------------|-----------------|------------------------------|-------------------|-------|------------|
-| AMD Ryzen 5 4500U with Radeon Graphics  | 6               | 6                            | 4                 | 423ms |1572ms      |
+| Name                                   | Number Of Cores | Number Of Logical Processors | Number Of Threads | Time  | Sequential |
+|----------------------------------------|-----------------|------------------------------|-------------------|-------|------------|
+| AMD Ryzen 5 4500U with Radeon Graphics | 6               | 6                            | 4                 | 423ms | 1572ms     |
+| 13th Gen Intel(R) Core(TM) i7-13620H   | 10              | 16                           | 4                 | 401ms | 1603ms     |
+
 
 
 ## Concluzii
