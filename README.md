@@ -42,12 +42,11 @@ Subscriptie: `{(city,=,"Bucharest");(temp,>=,10);(wind,<,11)}` - Unele campuri p
     
 4. Evaluarea timpilor
 
-
 | Name                                   | Number Of Cores | Number Of Logical Processors | Number Of Threads | Time  | Sequential |
 |----------------------------------------|-----------------|------------------------------|-------------------|-------|------------|
 | AMD Ryzen 5 4500U with Radeon Graphics | 6               | 6                            | 4                 | 423ms | 1572ms     |
 | 13th Gen Intel(R) Core(TM) i7-13620H   | 10              | 16                           | 4                 | 401ms | 1603ms     |
+| 14th Gen Intel(R) Core(TM) i9-14900HX  | 24              | 32                           | 4                 | 400ms | 1214ms     |
 
-
-
-## Concluzii
+- Evaluarea timpilor este manipulata, intrucat s-a folosit un Thread.Sleep pentru a 'simula' crearea unor date mai complicate. Motivul: programul nostru genereaza date foarte rapid, thread-urile suferind de un cost de creare (overhead), care ingreuneaza timpul de executie cu cat avem mai multe thread-uri. Metoda aleasa de noi, dupa cum se observa, nu face o diferenta mare intre puterea procesoarelor, intrucat toate asteapta acelasi timp de sleep. (10ms)
+- Testand pe ultimul procesor mentionat, fara acest Sleep, se obtin rezultate inconsistente: cateodata ruleaza mai bine cu un singur thread, cateodata mai rau. In general, 10.000 de publicatii si subscriptii se genereaza in ~250ms, pe cand cu acel Sleep a reusit 100 de astfel de date in ~400, respectiv ~1200ms.

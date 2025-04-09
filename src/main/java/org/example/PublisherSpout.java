@@ -18,7 +18,7 @@ public class PublisherSpout {
     private List<String> cities = List.of("Bucharest", "Cluj", "Iasi", "Timisoara");
     private List<String> directions = List.of("N", "NE", "E", "SE", "S", "SW", "W", "NW");
 
-    public synchronized Publication nextTuple() {
+    public Publication nextTuple() {
         return new Publication(
                 random.nextInt(10) + 1, // stationId
                 cities.get(random.nextInt(cities.size())), // city

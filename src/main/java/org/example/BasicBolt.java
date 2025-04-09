@@ -16,7 +16,7 @@ public class BasicBolt  {
         this.writer = new BufferedWriter(new FileWriter("tuples_" + timestamp + ".txt"));
     }
 
-    public synchronized void execute(Object tuple) {
+    public void execute(Object tuple) {
         System.out.println("Received: " + tuple);
         try {
             writer.write(tuple.toString());
