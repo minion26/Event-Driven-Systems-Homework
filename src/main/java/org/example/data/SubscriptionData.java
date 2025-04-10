@@ -2,7 +2,7 @@ package org.example.data;
 
 public class SubscriptionData {
     String type;
-    String operator; // TODO: Use types for operators
+    String operator;
     String value;
 
     public SubscriptionData(String type, String operator, String value) {

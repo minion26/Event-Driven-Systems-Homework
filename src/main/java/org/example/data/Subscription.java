@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Subscription {
-    private List<SubscriptionData> subscriptionData = new ArrayList<>();
+    private final List<SubscriptionData> subscriptionData = new ArrayList<>();
 
     public Subscription() {}
 

@@ -14,9 +14,9 @@ import java.util.Random;
 public class PublisherSpout {
 
 
-    private Random random = new Random();
-    private List<String> cities = List.of("Bucharest", "Cluj", "Iasi", "Timisoara");
-    private List<String> directions = List.of("N", "NE", "E", "SE", "S", "SW", "W", "NW");
+    private final Random random = new Random();
+    private final List<String> cities = List.of("Bucharest", "Cluj", "Iasi", "Timisoara");
+    private final List<String> directions = List.of("N", "NE", "E", "SE", "S", "SW", "W", "NW");
 
     public Publication nextTuple() {
         return new Publication(
