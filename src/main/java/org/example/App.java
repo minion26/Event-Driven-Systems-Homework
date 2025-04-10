@@ -19,13 +19,13 @@ public class App {
         Map<String, Double> equalityFrequencies = new HashMap<>();
         equalityFrequencies.put("city", 70.0);  // 70% din campurile city utilizeaza operatorul de egalitate
         // numarul de subscriptii generate
-        int totalSubscriptions = 10000;
+        int totalSubscriptions = 100;
 
         SubscriptionSpout subscriptionSpout = new SubscriptionSpout(fieldFrequencies, equalityFrequencies, totalSubscriptions);
         PublisherSpout publisherSpout = new PublisherSpout();
         BasicBolt basicBolt = new BasicBolt();
 
-        new ThreadedTask(4, 100, () -> {
+        new ThreadedTask(4, totalSubscriptions, () -> {
             basicBolt.execute( publisherSpout.nextTuple() );
             basicBolt.execute( subscriptionSpout.nextTuple() );
 
